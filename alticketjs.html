@@ -58,7 +58,7 @@ function loadAllTickets(){
 
         })
 
-        .getAllTickets();
+        .getAllTickets(getSessionToken());
 
 }
 
@@ -310,7 +310,7 @@ document.getElementById("btnRefreshTicket").addEventListener("click", function (
             });
 
         })
-        .getAllTickets();
+        .getAllTickets(getSessionToken());
 
 });
 /* ==========================================================
