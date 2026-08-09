@@ -18,7 +18,7 @@ function loadBuildings(){
             renderBuildings(allBuildings);
 
         })
-        .getBuildings();
+        .getBuildings(getSessionToken());
 
 }
 function renderBuildings(data){
@@ -33,8 +33,10 @@ function renderBuildings(data){
             : '<span class="status-inactive">Inactive</span>';
 
         // Temporary value
-        const overrideBadge =
-            '<span class="override-no">Normal</span>';
+const overrideBadge =
+    building.override
+    ? '<span class="override-yes">Override</span>'
+    : '<span class="override-no">Normal</span>';
 
         html += `
 
@@ -179,7 +181,7 @@ function loadBuildingStatistics(){
 
         })
 
-        .getBuildingStatistics();
+        .getBuildingStatistics(getSessionToken());
 
 }
 function filterBuildings(){
