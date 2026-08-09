@@ -1,0 +1,233 @@
+<script>
+  let allBuildings = [];
+
+function loadBuildings(){
+
+    loadBuildingStatistics();
+
+    google.script.run
+        .withSuccessHandler(function(data){
+
+            // Store original data only once
+            allBuildings = data;
+
+            // Build technician dropdown once
+            loadBuildingTechnicianFilter(allBuildings);
+
+            // Render table
+            renderBuildings(allBuildings);
+
+        })
+        .getBuildings();
+
+}
+function renderBuildings(data){
+
+    let html="";
+
+    data.forEach(function(building, index){
+
+        const statusBadge =
+            building.status == "YES"
+            ? '<span class="status-active">Active</span>'
+            : '<span class="status-inactive">Inactive</span>';
+
+        // Temporary value
+        const overrideBadge =
+            '<span class="override-no">Normal</span>';
+
+        html += `
+
+        <tr>
+
+            <td>${index + 1}</td>
+
+            <td>${building.building}</td>
+
+            <td>${building.technician}</td>
+
+            <td>${building.email}</td>
+
+            <td>${building.mobile}</td>
+
+            <td>
+
+    <span class="ticket-count">
+
+        ${building.tickets}
+
+    </span>
+
+</td>
+
+            <td>${overrideBadge}</td>
+
+            <td>${statusBadge}</td>
+
+            <td>
+
+                <button class="action-btn view-btn"
+                    onclick="viewBuilding('${building.building}')">
+
+                    <i class="fa-solid fa-eye"></i>
+
+                </button>
+
+                <button class="action-btn edit-btn"
+                    onclick="editBuilding('${building.building}')">
+
+                    <i class="fa-solid fa-pen"></i>
+
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+    document.getElementById("buildingTableBody").innerHTML = html;
+
+}
+
+/* Temporary Functions */
+
+function viewBuilding(building){
+
+    alert("View : " + building);
+
+}
+
+function editBuilding(building){
+
+    alert("Edit : " + building);
+
+}
+function loadBuildingStatistics(){
+
+    google.script.run
+
+        .withSuccessHandler(function(stats){
+
+            document.getElementById("totalBuildingsCard").innerHTML =
+                stats.totalBuildings;
+
+            document.getElementById("activeBuildingsCard").innerHTML =
+                stats.activeBuildings;
+
+            document.getElementById("overrideBuildingsCard").innerHTML =
+                stats.overrideActive;
+
+            document.getElementById("techniciansCard").innerHTML =
+                stats.technicians;
+
+        })
+
+        .getBuildingStatistics();
+
+}
+function filterBuildings(){
+
+    const keyword = document
+        .getElementById("buildingSearch")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const status =
+        document.getElementById("statusFilter").value;
+
+    const technician =
+        document.getElementById("technicianFilter").value;
+
+    const filtered = allBuildings.filter(function(building){
+
+        const universalSearch =
+
+            building.building.toLowerCase().includes(keyword) ||
+
+            building.technician.toLowerCase().includes(keyword) ||
+
+            building.email.toLowerCase().includes(keyword) ||
+
+            String(building.mobile).includes(keyword) ||
+
+            building.status.toLowerCase().includes(keyword);
+
+        const statusMatch =
+
+            status == "" ||
+
+            building.status == status;
+
+        const technicianMatch =
+
+            technician == "" ||
+
+            building.technician == technician;
+
+        return universalSearch &&
+               statusMatch &&
+               technicianMatch;
+
+    });
+
+    renderBuildings(filtered);
+
+}
+// Search
+document
+.getElementById("buildingSearch")
+.addEventListener("keyup", filterBuildings);
+
+// Status Filter
+document
+.getElementById("statusFilter")
+.addEventListener("change", filterBuildings);
+
+// Technician Filter
+document
+.getElementById("technicianFilter")
+.addEventListener("change", filterBuildings);
+
+// Refresh
+document
+.getElementById("refreshBuilding")
+.addEventListener("click", function(){
+
+    document.getElementById("buildingSearch").value = "";
+    document.getElementById("statusFilter").value = "";
+    document.getElementById("technicianFilter").value = "";
+
+    loadBuildings();
+
+});
+function loadBuildingTechnicianFilter(data){
+
+    const technicianFilter =
+        document.getElementById("technicianFilter");
+
+    technicianFilter.innerHTML =
+        '<option value="">All Technicians</option>';
+
+    const technicians = [
+        ...new Set(
+            data.map(item => item.technician)
+                .filter(Boolean)
+        )
+    ].sort();
+
+    technicians.forEach(function(name){
+
+        technicianFilter.innerHTML +=
+            `<option value="${name}">${name}</option>`;
+
+    });
+
+}
+
+loadBuildings();
+
+</script>
