@@ -111,3 +111,99 @@ function getBuildingStatistics() {
   };
 
 }
+function getBuildingForEdit(buildingName) {
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  // Building Sheet
+  const buildingSheet = ss.getSheetByName("Building_Technician_Map");
+  const buildingData = buildingSheet.getDataRange().getValues();
+
+  // Users Sheet
+  const usersSheet = ss.getSheetByName("Users");
+  const usersData = usersSheet.getDataRange().getValues();
+
+  let building = null;
+
+  // Find selected building
+  for (let i = 1; i < buildingData.length; i++) {
+
+    if (String(buildingData[i][1]) == String(buildingName)) {
+
+      building = {
+        building: buildingData[i][1],
+        technician: buildingData[i][2],
+        email: buildingData[i][3],
+        mobile: buildingData[i][4],
+        status: buildingData[i][5]
+      };
+
+      break;
+
+    }
+
+  }
+
+  // Active technicians only
+  const technicians = [];
+
+  for (let i = 1; i < usersData.length; i++) {
+
+    const role = String(usersData[i][6]).trim().toUpperCase();
+    const status = String(usersData[i][7]).trim().toUpperCase();
+
+    if (role == "TECHNICIAN" && status == "YES") {
+
+      technicians.push({
+
+        name: usersData[i][2],
+        email: usersData[i][3],
+        mobile: usersData[i][4]
+
+      });
+
+    }
+
+  }
+
+  return {
+
+    building: building,
+    technicians: technicians
+
+  };
+
+}
+function updateBuilding(building){
+
+  const sheet = SpreadsheetApp
+      .openById(SPREADSHEET_ID)
+      .getSheetByName("Building_Technician_Map");
+
+  const data = sheet.getDataRange().getValues();
+
+  for(let i=1;i<data.length;i++){
+
+    if(String(data[i][1]) == String(building.building)){
+
+      // Technician
+      sheet.getRange(i+1,3).setValue(building.technician);
+
+      // Email
+      sheet.getRange(i+1,4).setValue(building.email);
+
+      // Mobile
+      sheet.getRange(i+1,5).setValue(building.mobile);
+
+      // Status
+      sheet.getRange(i+1,6).setValue(building.status);
+
+      return true;
+
+    }
+
+  }
+
+  return false;
+
+}
