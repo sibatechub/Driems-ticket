@@ -14,9 +14,12 @@
 
 
 
- <?!= include('DashboardCSS'); ?>
- <?!= include('AllTicketsCSS'); ?>
+<?!= include('DashboardCSS'); ?>
+<?!= include('AllTicketsCSS'); ?>
 <?!= include('UsersCSS'); ?>
+<?!= include('BuildingsCSS'); ?>
+<?!= include('FeedbackCSS'); ?>
+<?!= include('AccountCSS'); ?>
 
 
 
@@ -97,6 +100,20 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
        <?!= include("Users"); ?>
    </div>
 
+   <!-- Buildings -->
+<div id="buildingsPage" style="display:none;">
+    <?!= include("Buildings"); ?>
+</div>
+
+<!-- Feedback -->
+<div id="feedbackPage" style="display:none;">
+    <?!= include("Feedback"); ?>
+</div>
+
+<!-- Account -->
+<div id="accountPage" style="display:none;">
+    <?!= include("Account"); ?>
+</div>
 
 </div>
 <!-- ==========================================
@@ -189,6 +206,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 <?!= include("DashboardJS"); ?>
 <?!= include("AllTicketsJS"); ?>
 <?!= include("UsersJS"); ?>
+<?!= include("BuildingsJS"); ?>
+<?!= include("FeedbackJS"); ?>
+<?!= include("AccountJS"); ?>
 
 
 
