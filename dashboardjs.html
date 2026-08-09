@@ -128,27 +128,17 @@ function loadUserSession(){
 
 
 
-       document.getElementById("headerUserName").innerHTML=user.name;
+document.getElementById("headerUserName").innerHTML = user.name;
 
+document.getElementById("userName").innerHTML = user.name;
 
+document.getElementById("userRole").innerHTML = user.role;
 
+// ADD THIS LINE
+window.currentUserRole = String(user.role).toUpperCase();
 
-       document.getElementById("userName").innerHTML=user.name;
-
-
-
-
-       document.getElementById("userRole").innerHTML=user.role;
-
-
-
-
-       document.getElementById("userAvatar").innerHTML=
-
-
-
-
-       user.name.charAt(0).toUpperCase();
+document.getElementById("userAvatar").innerHTML =
+user.name.charAt(0).toUpperCase();
 
 
 
@@ -304,9 +294,10 @@ document.querySelectorAll(".menu li").forEach(function(item){
 
 
        // Hide all pages
-       document.getElementById("dashboardPage").style.display = "none";
-       document.getElementById("ticketsPage").style.display = "none";
-       document.getElementById("usersPage").style.display = "none";
+document.getElementById("dashboardPage").style.display = "none";
+document.getElementById("ticketsPage").style.display = "none";
+document.getElementById("usersPage").style.display = "none";
+document.getElementById("buildingsPage").style.display = "none";
 
 
        const page = this.dataset.page;
@@ -350,6 +341,17 @@ document.querySelectorAll(".menu li").forEach(function(item){
 
 
        }
+       else if(page === "buildings"){
+
+    document.getElementById("buildingsPage").style.display = "block";
+
+    if(typeof loadBuildings === "function"){
+
+        loadBuildings();
+
+    }
+
+}
 
 
    };
