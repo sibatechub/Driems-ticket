@@ -64,23 +64,31 @@ function renderBuildings(data){
 
             <td>${statusBadge}</td>
 
-            <td>
+<td>
 
-                <button class="action-btn view-btn"
-                    onclick="viewBuilding('${building.building}')">
+    <button class="action-btn view-btn"
+        onclick="viewBuilding('${building.building}')">
 
-                    <i class="fa-solid fa-eye"></i>
+        <i class="fa-solid fa-eye"></i>
 
-                </button>
+    </button>
 
-                <button class="action-btn edit-btn"
-                    onclick="editBuilding('${building.building}')">
+    ${
+        window.currentUserRole === "ADMIN"
+        ?
+        `
+        <button class="action-btn edit-btn"
+            onclick="editBuilding('${building.building}')">
 
-                    <i class="fa-solid fa-pen"></i>
+            <i class="fa-solid fa-pen"></i>
 
-                </button>
+        </button>
+        `
+        :
+        ""
+    }
 
-            </td>
+</td>
 
         </tr>
 
@@ -100,9 +108,55 @@ function viewBuilding(building){
 
 }
 
-function editBuilding(building){
+let technicianList = [];
+let currentEditingBuilding = "";
 
-    alert("Edit : " + building);
+function editBuilding(buildingName){
+
+    currentEditingBuilding = buildingName;
+
+    google.script.run
+
+        .withSuccessHandler(function(result){
+
+            technicianList = result.technicians;
+
+            // Building Name
+            document.getElementById("editBuildingName").value =
+                result.building.building;
+
+            // Status
+            document.getElementById("editStatus").value =
+                result.building.status;
+
+            // Technician Dropdown
+            const techSelect =
+                document.getElementById("editTechnician");
+
+            techSelect.innerHTML = "";
+
+            technicianList.forEach(function(tech){
+
+                techSelect.innerHTML +=
+                    `<option value="${tech.name}">
+                        ${tech.name}
+                    </option>`;
+
+            });
+
+            // Select Current Technician
+            techSelect.value =
+                result.building.technician;
+
+            // Fill Email & Mobile
+            updateTechnicianInfo();
+
+            // Open Modal
+            document.getElementById("editBuildingModal").style.display = "flex";
+
+        })
+
+        .getBuildingForEdit(buildingName);
 
 }
 function loadBuildingStatistics(){
@@ -227,6 +281,93 @@ function loadBuildingTechnicianFilter(data){
     });
 
 }
+function updateTechnicianInfo(){
+
+    const technicianName =
+        document.getElementById("editTechnician").value;
+
+    const technician = technicianList.find(function(item){
+
+        return item.name === technicianName;
+
+    });
+
+    if(!technician) return;
+
+    document.getElementById("editEmail").value =
+        technician.email;
+
+    document.getElementById("editMobile").value =
+        technician.mobile;
+
+}
+document
+.getElementById("editTechnician")
+.addEventListener("change", updateTechnicianInfo);
+document
+.getElementById("btnSaveBuilding")
+.addEventListener("click", function(){
+
+    const building = {
+
+        building:
+            document.getElementById("editBuildingName").value,
+
+        technician:
+            document.getElementById("editTechnician").value,
+
+        email:
+            document.getElementById("editEmail").value,
+
+        mobile:
+            document.getElementById("editMobile").value,
+
+        status:
+            document.getElementById("editStatus").value
+
+    };
+
+    google.script.run
+
+        .withSuccessHandler(function(success){
+
+            if(success){
+
+                Swal.fire({
+
+                    icon:"success",
+
+                    title:"Updated",
+
+                    text:"Building updated successfully."
+
+                });
+
+                document.getElementById("editBuildingModal").style.display = "none";
+
+                loadBuildings();
+
+            }
+
+        })
+
+        .updateBuilding(building);
+
+});
+document
+.getElementById("btnCancelBuilding")
+.addEventListener("click", function(){
+
+    document.getElementById("editBuildingModal").style.display = "none";
+
+});
+document
+.getElementById("closeBuildingModal")
+.addEventListener("click", function(){
+
+    document.getElementById("editBuildingModal").style.display = "none";
+
+});
 
 loadBuildings();
 
