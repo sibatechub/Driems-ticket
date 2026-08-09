@@ -1,4 +1,14 @@
-function getBuildings() {
+function getBuildings(sessionToken) {
+  const user = getUserSession(sessionToken);
+
+const isAdmin =
+    user.role.toUpperCase() === "ADMIN";
+
+const userName =
+    String(user.name).trim();
+
+const today = new Date();
+today.setHours(0,0,0,0);
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
@@ -10,6 +20,10 @@ function getBuildings() {
 
   const ticketData = ticketSheet.getDataRange().getValues();
   ticketData.shift();
+  const workloadSheet = ss.getSheetByName("WorkLoad");
+
+const workloadData = workloadSheet.getDataRange().getValues();
+workloadData.shift();
 
   // Store ticket count for each building
   const ticketCount = {};
@@ -24,19 +38,89 @@ function getBuildings() {
 
   });
 
-const result = buildingData.map(function(row){
+const result = [];
 
-    return {
+buildingData.forEach(function(row){
 
-        slNo: row[0],
-        building: row[1],
-        technician: row[2],
-        email: row[3],
-        mobile: row[4],
-        status: row[5],
-        tickets: ticketCount[row[1]] || 0
+    let technician = row[2];
+    let email = row[3];
+    let mobile = row[4];
 
-    };
+    // Check override
+    workloadData.forEach(function(work){
+
+        const active =
+            String(work[8]).toUpperCase();
+
+        if(active !== "YES") return;
+
+        if(String(work[1]) !== String(row[1])) return;
+
+        const start = new Date(work[5]);
+        const end = new Date(work[6]);
+
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+
+        if(today >= start && today <= end){
+
+technician = work[3];   // Override Technician
+mobile = work[4];       // Override Mobile
+email = work[9];        // Override Email
+
+        }
+
+    });
+
+    // Technician Login
+    if(!isAdmin){
+
+if (
+    String(technician).trim().toUpperCase() !==
+    String(user.name).trim().toUpperCase()
+){
+    return;
+}
+
+    }
+
+let override = false;
+
+workloadData.forEach(function(work){
+
+    const active =
+        String(work[8]).toUpperCase();
+
+    if(active !== "YES") return;
+
+    if(String(work[1]) !== String(row[1])) return;
+
+    const start = new Date(work[5]);
+    const end   = new Date(work[6]);
+
+    start.setHours(0,0,0,0);
+    end.setHours(23,59,59,999);
+
+    if(today >= start && today <= end){
+
+        override = true;
+
+    }
+
+});
+
+result.push({
+
+    slNo: row[0],
+    building: row[1],
+    technician: technician,
+    email: email,
+    mobile: mobile,
+    status: row[5],
+    tickets: ticketCount[row[1]] || 0,
+    override: override
+
+});
 
 });
 
@@ -48,7 +132,16 @@ result.sort(function(a, b){
 return result;
 
 }
-function getBuildingStatistics() {
+function getBuildingStatistics(sessionToken) {
+  const user = getUserSession(sessionToken);
+
+const isAdmin =
+    user.role.toUpperCase() === "ADMIN";
+
+const userName =
+    String(user.name).trim();
+      const today = new Date();
+  today.setHours(0,0,0,0);
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
@@ -57,49 +150,151 @@ function getBuildingStatistics() {
 
   const buildingData = buildingSheet.getDataRange().getValues();
   buildingData.shift();
-
-  const totalBuildings = buildingData.length;
-
-  let activeBuildings = 0;
-  let technicians = {};
-
-  buildingData.forEach(function(row){
-
-    if(String(row[5]).toUpperCase() == "YES"){
-      activeBuildings++;
-    }
-
-    if(row[2]){
-      technicians[row[2]] = true;
-    }
-
-  });
-
-  const workloadData = workloadSheet.getDataRange().getValues();
+    const workloadData = workloadSheet.getDataRange().getValues();
   workloadData.shift();
 
-  let overrideActive = 0;
+let totalBuildings = 0;
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
+let activeBuildings = 0;
 
-  workloadData.forEach(function(row){
+let technicians = {};
 
-      const active = String(row[8]).toUpperCase();
+buildingData.forEach(function(row){
 
-      if(active != "YES") return;
+    let technician = row[2];
 
-      const start = new Date(row[5]);
-      const end = new Date(row[6]);
+    // Check override
+    workloadData.forEach(function(work){
 
-      start.setHours(0,0,0,0);
-      end.setHours(23,59,59,999);
+        const active =
+            String(work[8]).toUpperCase();
 
-      if(today >= start && today <= end){
-          overrideActive++;
-      }
+        if(active !== "YES") return;
 
-  });
+        if(String(work[1]) !== String(row[1])) return;
+
+        const start = new Date(work[5]);
+        const end = new Date(work[6]);
+
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+
+        if(today >= start && today <= end){
+
+            technician = work[3];
+
+        }
+
+    });
+
+    // Technician Login
+    if(!isAdmin){
+
+if(
+    String(technician).trim().toUpperCase() !==
+    String(userName).trim().toUpperCase()
+){
+    return;
+}
+
+    }
+
+    totalBuildings++;
+
+    if(String(row[5]).toUpperCase() === "YES"){
+
+        activeBuildings++;
+
+    }
+
+    technicians[
+    String(technician).trim().toUpperCase()
+] = true;
+
+});
+
+let overrideActive = 0;
+
+buildingData.forEach(function(row){
+
+    let technician = row[2];
+
+    // Check override for this building
+    workloadData.forEach(function(work){
+
+        const active =
+            String(work[8]).trim().toUpperCase();
+
+        if(active !== "YES") return;
+
+        // Same building
+        if(
+            String(work[1]).trim() !==
+            String(row[1]).trim()
+        ){
+            return;
+        }
+
+        const start = new Date(work[5]);
+        const end = new Date(work[6]);
+
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+
+        if(today >= start && today <= end){
+
+            technician = work[3];
+
+        }
+
+    });
+
+
+    // Technician login:
+    // Only count override if this building belongs
+    // to the logged-in technician after override.
+    if(!isAdmin){
+
+        if(
+            String(technician).trim().toUpperCase() !==
+            userName.toUpperCase()
+        ){
+            return;
+        }
+
+    }
+
+
+    // Check whether this visible building has an active override
+    workloadData.forEach(function(work){
+
+        const active =
+            String(work[8]).trim().toUpperCase();
+
+        if(active !== "YES") return;
+
+        if(
+            String(work[1]).trim() !==
+            String(row[1]).trim()
+        ){
+            return;
+        }
+
+        const start = new Date(work[5]);
+        const end = new Date(work[6]);
+
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+
+        if(today >= start && today <= end){
+
+            overrideActive++;
+
+        }
+
+    });
+
+});
 
   return {
 
