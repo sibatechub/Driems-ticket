@@ -134,11 +134,35 @@ document.getElementById("userName").innerHTML = user.name;
 
 document.getElementById("userRole").innerHTML = user.role;
 
-// ADD THIS LINE
 window.currentUserRole = String(user.role).toUpperCase();
 
 document.getElementById("userAvatar").innerHTML =
 user.name.charAt(0).toUpperCase();
+
+
+// ==========================================
+// ADMIN ONLY MENU
+// ==========================================
+
+const userManagementMenu =
+    document.getElementById("userManagementMenu");
+
+const settingsMenu =
+    document.getElementById("settingsMenu");
+
+if (window.currentUserRole === "ADMIN") {
+
+    // Admin can see these menus
+    userManagementMenu.style.display = "flex";
+    settingsMenu.style.display = "flex";
+
+} else {
+
+    // Technician cannot see these menus
+    userManagementMenu.style.display = "none";
+    settingsMenu.style.display = "none";
+
+}
 
 
 
@@ -294,10 +318,13 @@ document.querySelectorAll(".menu li").forEach(function(item){
 
 
        // Hide all pages
+// Hide all pages
 document.getElementById("dashboardPage").style.display = "none";
 document.getElementById("ticketsPage").style.display = "none";
 document.getElementById("usersPage").style.display = "none";
 document.getElementById("buildingsPage").style.display = "none";
+document.getElementById("feedbackPage").style.display = "none";
+document.getElementById("accountPage").style.display = "none";
 
 
        const page = this.dataset.page;
@@ -348,6 +375,28 @@ document.getElementById("buildingsPage").style.display = "none";
     if(typeof loadBuildings === "function"){
 
         loadBuildings();
+
+    }
+
+}
+else if(page === "feedback"){
+
+    document.getElementById("feedbackPage").style.display = "block";
+
+    if(typeof initializeFeedbackPage === "function"){
+
+        initializeFeedbackPage();
+
+    }
+
+}
+else if(page === "account"){
+
+    document.getElementById("accountPage").style.display = "block";
+
+    if(typeof initializeAccountPage === "function"){
+
+        initializeAccountPage();
 
     }
 
